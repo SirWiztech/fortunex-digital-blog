@@ -1,0 +1,44 @@
+# Fortunexdigital — Apache configuration
+# Requires mod_rewrite. Adjust RewriteBase if installed in a subfolder.
+
+# Disable MultiViews: WAMP's default Options include +MultiViews, which makes
+# mod_negotiation resolve e.g. /blog/<slug> to blog.php (path-info) BEFORE mod_rewrite
+# runs, so the pretty-URL rules below never fire. Turning it off per-directory lets
+# the RewriteRules handle /blog/<slug>, /category/<slug>, /tag/<slug> correctly.
+Options -MultiViews
+
+RewriteEngine On
+RewriteBase /fortunex-digital-blog/
+
+# Prevent direct access to includes/admin assets misroutes
+RewriteRule ^includes/.*$ - [F,L]
+
+# Sitemap & robots
+RewriteRule ^sitemap\.xml$ sitemap.php [L]
+
+# Static-style pages
+RewriteRule ^blog/([a-z0-9-]+)/?$ post.php?slug=$1 [L,QSA]
+RewriteRule ^blog/?$ blog.php [L]
+
+RewriteRule ^category/([a-z0-9-]+)/?$ category.php?slug=$1 [L,QSA]
+RewriteRule ^tag/([a-z0-9-]+)/?$ tag.php?slug=$1 [L,QSA]
+RewriteRule ^p/([a-z0-9-]+)/?$ page.php?slug=$1 [L,QSA]
+RewriteRule ^search/?$ search.php [L,QSA]
+
+# Custom 404
+ErrorDocument 404 /fortunex-digital-blog/404.php
+
+# GZIP compression
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/json
+</IfModule>
+
+# Browser caching
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType image/jpg "access plus 1 month"
+    ExpiresByType image/png "access plus 1 month"
+    ExpiresByType image/svg+xml "access plus 1 month"
+    ExpiresByType text/css "access plus 1 week"
+    ExpiresByType application/javascript "access plus 1 week"
+</IfModule>
