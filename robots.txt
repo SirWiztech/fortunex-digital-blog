@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: http://localhost/fortunex-digital-blog/sitemap.php
+Sitemap: https://fortunexdigitals.com/sitemap.php

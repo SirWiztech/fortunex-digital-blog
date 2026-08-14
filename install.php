@@ -9,16 +9,17 @@ require_once __DIR__ . '/includes/config.php';
 require_once __DIR__ . '/includes/functions.php';
 
 $host = DB_HOST;
-$user = DB_USER;
-$pass = DB_PASS;
+$user = DB_USERNAME;
+$pass = DB_PASSWORD;
 $db   = DB_NAME;
+$port = DB_PORT;
 
 try {
-    $server = new PDO("mysql:host=$host;charset=utf8mb4", $user, $pass, [
+    $server = new PDO("mysql:host=$host;port=$port;charset=utf8mb4", $user, $pass, [
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
     ]);
 } catch (PDOException $e) {
-    die('<p>Could not connect to MySQL server. Check DB_USER/DB_PASS in includes/config.php.</p><pre>' . htmlspecialchars($e->getMessage()) . '</pre>');
+    die('<p>Could not connect to MySQL server. Check the DB_* environment variables (DB_HOST, DB_PORT, DB_USERNAME, DB_PASSWORD, DB_NAME).</p><pre>' . htmlspecialchars($e->getMessage()) . '</pre>');
 }
 
 $server->exec("CREATE DATABASE IF NOT EXISTS `$db` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
