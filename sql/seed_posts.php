@@ -703,7 +703,7 @@ $pdo->exec("DELETE FROM tags");
 $pdo->exec("DELETE FROM post_tags");
 
 $catId = $pdo->prepare("SELECT id FROM categories WHERE slug = ?");
-$postStmt = $pdo->prepare("INSERT INTO posts (slug, title, excerpt, content, category_id, author_id, status, meta_title, meta_description, published_at, updated_at) VALUES (?, ?, ?, ?, ?, 1, 'published', ?, ?, ?, ?)");
+$postStmt = $pdo->prepare("INSERT INTO posts (slug, title, excerpt, content, category_id, author_id, featured_image, status, meta_title, meta_description, published_at, updated_at) VALUES (?, ?, ?, ?, ?, 1, ?, 'published', ?, ?, ?, ?)");
 $tagStmt = $pdo->prepare("INSERT IGNORE INTO tags (name, slug) VALUES (?, ?)");
 $linkStmt = $pdo->prepare("INSERT IGNORE INTO post_tags (post_id, tag_id) VALUES (?, ?)");
 $getTag = $pdo->prepare("SELECT id FROM tags WHERE slug = ?");
@@ -713,7 +713,8 @@ foreach ($posts as $post) {
     $cid = $catId->fetchColumn();
     $postStmt->execute([
         $post['slug'], $post['title'], $post['excerpt'], $post['content'],
-        $cid, $post['meta_title'], $post['meta_description'], $post['date'] . ' 09:00:00', $post['date'] . ' 09:00:00'
+        $cid, 'https://picsum.photos/seed/fxd-' . $post['slug'] . '/800/450',
+        $post['meta_title'], $post['meta_description'], $post['date'] . ' 09:00:00', $post['date'] . ' 09:00:00'
     ]);
     $pid = $pdo->lastInsertId();
     foreach ($post['tags'] as $t) {

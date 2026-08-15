@@ -12,7 +12,7 @@ $canonicalUrl = SITE_URL . '/';
 // Popular posts (most recent published)
 $pdo = DB::connect();
 $popular = $pdo->query("
-    SELECT p.id, p.title, p.slug, p.excerpt, p.published_at, c.slug AS category_slug, c.name AS category_name
+    SELECT p.id, p.title, p.slug, p.excerpt, p.featured_image, p.published_at, c.slug AS category_slug, c.name AS category_name
     FROM posts p LEFT JOIN categories c ON p.category_id = c.id
     WHERE p.status = 'published' ORDER BY p.published_at DESC LIMIT 3
 ")->fetchAll();

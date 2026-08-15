@@ -27,18 +27,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_post'])) {
     $author_id = (int)($_POST['author_id'] ?? 1);
     $excerpt = trim($_POST['excerpt']);
     $content = $_POST['content'];
+    $featured_image = trim($_POST['featured_image'] ?? '');
     $status = $_POST['status'] ?? 'published';
     $meta_title = trim($_POST['meta_title']);
     $meta_description = trim($_POST['meta_description']);
     $tags = trim($_POST['tags'] ?? '');
 
     if ($id > 0) {
-        $pdo->prepare("UPDATE posts SET title=?, slug=?, category_id=?, author_id=?, excerpt=?, content=?, status=?, meta_title=?, meta_description=?, updated_at=NOW() WHERE id=?")
-            ->execute([$title, $slug, $category_id, $author_id, $excerpt, $content, $status, $meta_title, $meta_description, $id]);
+        $pdo->prepare("UPDATE posts SET title=?, slug=?, category_id=?, author_id=?, excerpt=?, content=?, featured_image=?, status=?, meta_title=?, meta_description=?, updated_at=NOW() WHERE id=?")
+            ->execute([$title, $slug, $category_id, $author_id, $excerpt, $content, $featured_image, $status, $meta_title, $meta_description, $id]);
     } else {
-        $pdo->prepare("INSERT INTO posts (title, slug, category_id, author_id, excerpt, content, status, meta_title, meta_description, published_at, updated_at)
-            VALUES (?,?,?,?,?,?,?,?,?,NOW(),NOW())")
-            ->execute([$title, $slug, $category_id, $author_id, $excerpt, $content, $status, $meta_title, $meta_description]);
+        $pdo->prepare("INSERT INTO posts (title, slug, category_id, author_id, excerpt, content, featured_image, status, meta_title, meta_description, published_at, updated_at)
+            VALUES (?,?,?,?,?,?,?,?,?,?,NOW(),NOW())")
+            ->execute([$title, $slug, $category_id, $author_id, $excerpt, $content, $featured_image, $status, $meta_title, $meta_description]);
         $id = $pdo->lastInsertId();
     }
 
@@ -145,6 +146,8 @@ $posts = $pdo->query("SELECT p.id, p.title, p.status, p.published_at, c.name AS 
       </select>
       <label>Excerpt</label>
       <textarea name="excerpt" style="min-height:80px"><?= e($post['excerpt'] ?? '') ?></textarea>
+      <label>Featured Image URL (web image, e.g. https://picsum.photos/seed/...)</label>
+      <input type="url" name="featured_image" value="<?= e($post['featured_image'] ?? '') ?>" placeholder="https://...">
       <label>Content (HTML allowed)</label>
       <textarea name="content"><?= e($post['content'] ?? '') ?></textarea>
       <label>Tags (comma-separated)</label>
