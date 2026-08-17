@@ -183,3 +183,19 @@ if (!function_exists('organization_jsonld')) {
         ];
     }
 }
+
+if (!function_exists('track_visit')) {
+    function track_visit() {
+        if (!function_exists('DB')) require_once __DIR__ . '/db.php';
+        $pdo = DB::connect();
+        $ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+        $ua = $_SERVER['HTTP_USER_AGENT'] ?? '';
+        $ref = $_SERVER['HTTP_REFERER'] ?? '';
+        $page = $_SERVER['REQUEST_URI'] ?? '/';
+        try {
+            $pdo->prepare("INSERT INTO visits (ip, user_agent, referer, page_url, visited_at) VALUES (?, ?, ?, ?, NOW())")->execute([$ip, $ua, $ref, $page]);
+        } catch (Exception $e) {
+            // silently fail if DB not available
+        }
+    }
+}

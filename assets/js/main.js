@@ -19,6 +19,8 @@
         try { accepted = localStorage.getItem('fxd_cookie_ok') === '1'; } catch (e) {}
         if (!accepted) {
             banner.hidden = false;
+        } else {
+            banner.hidden = true;
         }
         var btn = document.getElementById('cookie-accept');
         if (btn) {

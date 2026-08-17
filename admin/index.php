@@ -1,6 +1,6 @@
 <?php
 /**
- * Fortunexdigital — Admin dashboard (post CRUD)
+ * Fortunexdigital — Admin dashboard (post CRUD + traffic stats)
  */
 require_once __DIR__ . '/../includes/config.php';
 require_once __DIR__ . '/../includes/functions.php';
@@ -80,6 +80,29 @@ if ($action === 'edit' && isset($_GET['id'])) {
 $categories = $pdo->query("SELECT * FROM categories ORDER BY name")->fetchAll();
 $authors = $pdo->query("SELECT * FROM authors ORDER BY name")->fetchAll();
 $posts = $pdo->query("SELECT p.id, p.title, p.status, p.published_at, c.name AS category FROM posts p LEFT JOIN categories c ON p.category_id=c.id ORDER BY p.published_at DESC")->fetchAll();
+
+// --- Traffic stats ---
+$traffic_action = $_GET['traffic_action'] ?? 'overview';
+$traffic_period = $_GET['period'] ?? 'all';
+$period = '';
+if ($traffic_period === 'day') { $period = "AND visited_at >= CURDATE()"; }
+if ($traffic_period === 'week') { $period = "AND visited_at >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)"; }
+if ($traffic_period === 'month') { $period = "AND visited_at >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)"; }
+
+$total_visits = $pdo->query("SELECT COUNT(*) as cnt FROM visits")->fetch()['cnt'];
+$unique_visitors = $pdo->query("SELECT COUNT(DISTINCT ip) as cnt FROM visits")->fetch()['cnt'];
+$today_visits = $pdo->query("SELECT COUNT(*) as cnt FROM visits WHERE visited_at >= CURDATE()")->fetch()['cnt'];
+$this_week = $pdo->query("SELECT COUNT(*) as cnt FROM visits WHERE visited_at >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)")->fetch()['cnt'];
+$this_month = $pdo->query("SELECT COUNT(*) as cnt FROM visits WHERE visited_at >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)")->fetch()['cnt'];
+
+// Top pages
+$top_pages = $pdo->query("SELECT page_url, COUNT(*) as visits FROM visits GROUP BY page_url ORDER BY visits DESC LIMIT 10")->fetchAll();
+
+// Referrers
+$referrers = $pdo->query("SELECT referer, COUNT(*) as cnt FROM visits WHERE referer != '' AND referer IS NOT NULL GROUP BY referer ORDER BY cnt DESC LIMIT 10")->fetchAll();
+
+// Recent visits
+$recent = $pdo->query("SELECT ip, page_url, visited_at FROM visits ORDER BY visited_at DESC LIMIT 20")->fetchAll();
 ?>
 <!doctype html>
 <html lang="en">
@@ -96,6 +119,12 @@ $posts = $pdo->query("SELECT p.id, p.title, p.status, p.published_at, c.name AS 
   .admin-form input,.admin-form textarea,.admin-form select{width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:15px}
   .admin-form textarea{min-height:260px}
   .pill{display:inline-block;padding:2px 10px;border-radius:999px;font-size:12px;background:var(--bg-soft)}
+  .stat-box{background:var(--bg-soft);border-radius:var(--radius);padding:20px;margin:10px 0}
+  .stat-box h3{margin:0 0 12px;font-size:24px;color:var(--primary)}
+  .stat-box p{margin:0;color:var(--muted)}
+  .traffic-filter{margin:20px 0}
+  .traffic-filter select,.traffic-filter button{padding:8px 14px;font-size:14px}
+  .recent-visit{font-size:12px;color:var(--muted);background:#fafafa;padding:8px 12px;margin:4px 0;border-radius:4px}
 </style>
 </head>
 <body>
@@ -105,8 +134,78 @@ $posts = $pdo->query("SELECT p.id, p.title, p.status, p.published_at, c.name AS 
 </div></header>
 
 <div class="admin-wrap">
+
   <?php if ($message): ?><p class="pill" style="background:#e8f5e9;color:#1b5e20"><?= e($message) ?></p><?php endif; ?>
 
+  <!-- Traffic overview cards -->
+  <div class="traffic-filter">
+    <label>Period: </label>
+    <select name="period" onchange="window.location.search='period='+this.value">
+      <option value="all" <?= $traffic_period === 'all' ? 'selected' : '' ?>>All time</option>
+      <option value="day" <?= $traffic_period === 'day' ? 'selected' : '' ?>>Today</option>
+      <option value="week" <?= $traffic_period === 'week' ? 'selected' : '' ?>>This week</option>
+      <option value="month" <?= $traffic_period === 'month' ? 'selected' : '' ?>>This month</option>
+    </select>
+    <button class="btn-outline" style="font-size:12px;padding:6px 12px;margin-left:8px;" onclick="window.location.search=''">Reset</button>
+  </div>
+
+  <div class="stat-box">
+    <h3><?= $total_visits ?></h3>
+    <p>Total Visits</p>
+  </div>
+  <div class="stat-box">
+    <h3><?= $unique_visitors ?></h3>
+    <p>Unique Visitors</p>
+  </div>
+  <div class="stat-box">
+    <h3><?= $today_visits ?></h3>
+    <p>Today</p>
+  </div>
+  <div class="stat-box">
+    <h3><?= $this_week ?></h3>
+    <p>This Week</p>
+  </div>
+  <div class="stat-box">
+    <h3><?= $this_month ?></h3>
+    <p>This Month</p>
+  </div>
+
+  <!-- Tabs -->
+  <div style="display:flex;gap:12px;margin:30px 0;flex-wrap:wrap">
+    <a class="btn-cta" href="<?= SITE_URL ?>/admin/index.php?action=list">Posts</a>
+    <a class="btn-outline" href="<?= SITE_URL ?>/admin/index.php?traffic_action=pages">Top Pages</a>
+    <a class="btn-outline" href="<?= SITE_URL ?>/admin/index.php?traffic_action=referrers">Referrers</a>
+    <a class="btn-outline" href="<?= SITE_URL ?>/admin/index.php?traffic_action=recent">Recent Visits</a>
+  </div>
+
+  <?php if ($traffic_action === 'pages'): ?>
+    <h2>Top Pages</h2>
+    <table class="admin-table">
+      <tr><th>Page</th><th>Visits</th></tr>
+      <?php foreach ($top_pages as $p): ?>
+        <tr><td><?= e($p['page_url']) ?></td><td><?= $p['visits'] ?></td></tr>
+      <?php endforeach; ?>
+    </table>
+  <?php elseif ($traffic_action === 'referrers'): ?>
+    <h2>Top Referrers</h2>
+    <table class="admin-table">
+      <tr><th>Referrer</th><th>Clicks</th></tr>
+      <?php foreach ($referrers as $r): ?>
+        <tr><td><?= e($r['referer'] ?: '(direct)') ?></td><td><?= $r['cnt'] ?></td></tr>
+      <?php endforeach; ?>
+    </table>
+  <?php elseif ($traffic_action === 'recent'): ?>
+    <h2>Recent Visits</h2>
+    <div style="max-height:400px;overflow:auto">
+      <?php foreach ($recent as $v): ?>
+        <div class="recent-visit"><?= e($v['ip']) ?> · <?= e($v['page_url']) ?> · <?= format_date($v['visited_at']) ?></div>
+      <?php endforeach; ?>
+    </div>
+  <?php else: /* overview */ ?>
+    <!-- Already shown above -->
+  <?php endif; ?>
+
+  <!-- Posts table -->
   <?php if ($action === 'list'): ?>
     <div style="display:flex;justify-content:space-between;align-items:center">
       <h1>Posts</h1>
@@ -127,7 +226,6 @@ $posts = $pdo->query("SELECT p.id, p.title, p.status, p.published_at, c.name AS 
       </tr>
       <?php endforeach; ?>
     </table>
-
   <?php else: /* new / edit */ ?>
     <h1><?= $action === 'edit' ? 'Edit Post' : 'New Post' ?></h1>
     <form class="admin-form" method="post" action="<?= SITE_URL ?>/admin/index.php?action=save">
@@ -146,7 +244,7 @@ $posts = $pdo->query("SELECT p.id, p.title, p.status, p.published_at, c.name AS 
       </select>
       <label>Excerpt</label>
       <textarea name="excerpt" style="min-height:80px"><?= e($post['excerpt'] ?? '') ?></textarea>
-      <label>Featured Image URL (web image, e.g. https://picsum.photos/seed/...)</label>
+      <label>Featured Image URL</label>
       <input type="url" name="featured_image" value="<?= e($post['featured_image'] ?? '') ?>" placeholder="https://...">
       <label>Content (HTML allowed)</label>
       <textarea name="content"><?= e($post['content'] ?? '') ?></textarea>

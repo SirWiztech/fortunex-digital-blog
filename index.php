@@ -20,6 +20,7 @@ $popular = $pdo->query("
 $cats = get_categories();
 
 require_once __DIR__ . '/includes/header.php';
+track_visit();
 ?>
 <section class="hero">
     <div class="container">
@@ -66,7 +67,7 @@ require_once __DIR__ . '/includes/header.php';
         <div class="cat-grid">
             <?php foreach ($cats as $c): ?>
             <a class="cat-card" href="<?= SITE_URL ?>/category/<?= e($c['slug']) ?>">
-                <div class="thumb"><?= e($c['name']) ?></div>
+                <div class="thumb"><img src="<?= ASSETS ?>/img/categories/<?= e($c['slug']) ?>.jpg" alt="<?= e($c['name']) ?> category" loading="lazy"></div>
                 <div class="body"><h3><?= e($c['name']) ?> &rarr;</h3></div>
             </a>
             <?php endforeach; ?>

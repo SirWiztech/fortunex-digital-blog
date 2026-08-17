@@ -66,6 +66,14 @@ $schema = [
         post_id INT, tag_id INT,
         PRIMARY KEY (post_id, tag_id)
     )",
+    "CREATE TABLE IF NOT EXISTS visits (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        ip VARCHAR(45),
+        user_agent TEXT,
+        referer TEXT,
+        page_url TEXT,
+        visited_at DATETIME
+    )",
     "CREATE TABLE IF NOT EXISTS comments (
         id INT AUTO_INCREMENT PRIMARY KEY,
         post_id INT,
