@@ -67,7 +67,7 @@ track_visit();
         <div class="cat-grid">
             <?php foreach ($cats as $c): ?>
             <a class="cat-card" href="<?= SITE_URL ?>/category/<?= e($c['slug']) ?>">
-                <div class="thumb"><img src="<?= ASSETS ?>/img/categories/<?= e($c['slug']) ?>.jpg" alt="<?= e($c['name']) ?> category" loading="lazy"></div>
+                <div class="thumb"><img src="<?= ASSETS ?>/img/categories_<?= e($c['slug']) ?>.jpg" alt="<?= e($c['name']) ?> category" loading="lazy"></div>
                 <div class="body"><h3><?= e($c['name']) ?> &rarr;</h3></div>
             </a>
             <?php endforeach; ?>

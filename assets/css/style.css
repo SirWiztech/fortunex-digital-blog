@@ -145,6 +145,7 @@ h1, h2, h3, h4 { line-height: 1.2; color: var(--ink); font-family: var(--font-di
 
 /* Hero — the passbook opening spread. A ledger entry, not a gradient banner. */
 .hero {
+    background: #1b1b1b;
     background-image: url('/fortunex-digital-blog/assets/img/hero-bg.jpg');
     background-size: cover;
     background-position: center;
@@ -203,6 +204,7 @@ h1, h2, h3, h4 { line-height: 1.2; color: var(--ink); font-family: var(--font-di
     aspect-ratio: 16/9;
     background-size: cover;
     background-position: center;
+    background-color: var(--primary);
     border-radius: var(--radius);
     overflow: hidden;
     position: relative;
