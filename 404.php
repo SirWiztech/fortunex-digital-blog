@@ -3,10 +3,12 @@
  * Fortunexdigital — 404 error page
  */
 require_once __DIR__ . '/includes/config.php';
+require_once __DIR__ . '/includes/functions.php';
 if (!headers_sent()) header('HTTP/1.1 404 Not Found');
 $pageTitle = 'Page Not Found (404) — ' . SITE_NAME;
 $pageDescription = 'The page you were looking for could not be found on Fortunexdigital.';
 require_once __DIR__ . '/includes/header.php';
+track_visit();
 ?>
 <section class="notfound">
     <div class="container">

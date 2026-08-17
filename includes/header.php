@@ -7,7 +7,16 @@ global $pageTitle, $pageDescription, $canonicalUrl, $ogImage, $jsonLd, $bodyClas
 
 $pageTitle = $pageTitle ?? SITE_NAME . ' — ' . SITE_TAGLINE;
 $pageDescription = $pageDescription ?? 'Fortunexdigital shares proven ways to make money online, save smarter, and build a profitable affiliate business.';
-$canonicalUrl = $canonicalUrl ?? (SITE_URL . $_SERVER['REQUEST_URI']);
+// Canonical URL fallback: SITE_URL already includes any base path, so strip
+// it from the request URI to avoid doubling it (e.g. on subfolder localhost installs).
+$requestPath = $_SERVER['REQUEST_URI'] ?? '/';
+if (defined('BASE_PATH') && BASE_PATH !== '' && strpos($requestPath, BASE_PATH) === 0) {
+    $requestPath = substr($requestPath, strlen(BASE_PATH));
+    if ($requestPath === '' || $requestPath === false) {
+        $requestPath = '/';
+    }
+}
+$canonicalUrl = $canonicalUrl ?? (SITE_URL . $requestPath);
 $ogImage = $ogImage ?? ASSETS . '/img/og-default.svg';
 
 // Build JSON-LD blocks: always include Organization, then page-specific block(s)

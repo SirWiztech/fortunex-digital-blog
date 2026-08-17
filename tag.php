@@ -44,6 +44,7 @@ $stmt->execute([$tag['id'], $perPage, $offset]);
 $posts = $stmt->fetchAll();
 
 require_once __DIR__ . '/includes/header.php';
+track_visit();
 ?>
 <div class="container">
     <nav class="breadcrumbs" aria-label="Breadcrumb">

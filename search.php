@@ -25,6 +25,7 @@ $pageDescription = 'Search Fortunexdigital for side hustles, affiliate marketing
 $canonicalUrl = SITE_URL . '/search?q=' . urlencode($q);
 
 require_once __DIR__ . '/includes/header.php';
+track_visit();
 ?>
 <section class="section">
     <div class="container">

@@ -38,6 +38,7 @@ $pageDescription = $page['meta_description'] ?: excerpt($page['content'], 30);
 $canonicalUrl = SITE_URL . '/p/' . e($page['slug']);
 
 require_once __DIR__ . '/includes/header.php';
+track_visit();
 ?>
 <div class="container">
     <nav class="breadcrumbs" aria-label="Breadcrumb">

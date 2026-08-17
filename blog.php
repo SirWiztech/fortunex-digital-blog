@@ -24,6 +24,7 @@ $stmt->execute([$perPage, $offset]);
 $posts = $stmt->fetchAll();
 
 require_once __DIR__ . '/includes/header.php';
+track_visit();
 ?>
 <section class="section">
     <div class="container">

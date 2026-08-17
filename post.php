@@ -46,6 +46,7 @@ $jsonLd = [
 $jsonLd = [$jsonLd, breadcrumb_jsonld($breadcrumbs)];
 
 require_once __DIR__ . '/includes/header.php';
+track_visit();
 ?>
 <div class="container">
     <nav class="breadcrumbs" aria-label="Breadcrumb">

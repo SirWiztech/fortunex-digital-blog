@@ -84,6 +84,13 @@ $posts = $pdo->query("SELECT p.id, p.title, p.status, p.published_at, c.name AS 
 // --- Traffic stats ---
 $traffic_action = $_GET['traffic_action'] ?? 'overview';
 $traffic_period = $_GET['period'] ?? 'all';
+
+// Reset visit statistics (POST only, so crawlers/prefetch can't wipe data)
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && $traffic_action === 'reset') {
+    $pdo->exec("DELETE FROM visits");
+    $message = 'All visit statistics have been reset to zero.';
+    $traffic_action = 'overview';
+}
 $period = '';
 if ($traffic_period === 'day') { $period = "AND visited_at >= CURDATE()"; }
 if ($traffic_period === 'week') { $period = "AND visited_at >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)"; }
@@ -146,7 +153,9 @@ $recent = $pdo->query("SELECT ip, page_url, visited_at FROM visits ORDER BY visi
       <option value="week" <?= $traffic_period === 'week' ? 'selected' : '' ?>>This week</option>
       <option value="month" <?= $traffic_period === 'month' ? 'selected' : '' ?>>This month</option>
     </select>
-    <button class="btn-outline" style="font-size:12px;padding:6px 12px;margin-left:8px;" onclick="window.location.search=''">Reset</button>
+    <form method="post" action="<?= SITE_URL ?>/admin/index.php?traffic_action=reset" style="display:inline;margin-left:8px" onsubmit="return confirm('Reset ALL visit statistics to zero? This cannot be undone.');">
+      <button class="btn-outline" type="submit" style="font-size:12px;padding:6px 12px">Reset Stats</button>
+    </form>
   </div>
 
   <div class="stat-box">

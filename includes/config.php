@@ -40,7 +40,32 @@
 
 define('SITE_NAME', 'Fortunexdigital');
 define('SITE_TAGLINE', 'Affiliate Marketing Amplified');
-define('SITE_URL', getenv('SITE_URL') ?: 'https://fortunexdigitals.com');
+
+// Site URL: an explicit env var (or .env SITE_URL) always wins. Otherwise
+// auto-detect the current host so localhost installs (incl. subfolders like
+// /fortunex-digital-blog/) get working asset/link URLs, falling back to the
+// production domain on the live site or when no host info is available (CLI).
+if (getenv('SITE_URL')) {
+    define('SITE_URL', getenv('SITE_URL'));
+    define('BASE_PATH', '');
+} else {
+    $host = $_SERVER['HTTP_HOST'] ?? '';
+    $isProd = $host === '' || strcasecmp($host, 'fortunexdigitals.com') === 0 || strcasecmp($host, 'www.fortunexdigitals.com') === 0;
+    if ($isProd) {
+        define('SITE_URL', 'https://fortunexdigitals.com');
+        define('BASE_PATH', '');
+    } else {
+        $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+        $docRoot = rtrim(str_replace('\\', '/', $_SERVER['DOCUMENT_ROOT'] ?? ''), '/');
+        $projectRoot = str_replace('\\', '/', dirname(__DIR__));
+        $basePath = '';
+        if ($docRoot !== '' && stripos($projectRoot, $docRoot) === 0) {
+            $basePath = rtrim(substr($projectRoot, strlen($docRoot)), '/');
+        }
+        define('BASE_PATH', $basePath);
+        define('SITE_URL', $scheme . '://' . $host . $basePath);
+    }
+}
 define('SITE_EMAIL', 'hello@fortunexdigital.com');
 
 // Database credentials (read from environment variables, with local defaults)
@@ -48,7 +73,7 @@ define('DB_HOST', getenv('DB_HOST') ?: 'localhost');
 define('DB_NAME', getenv('DB_NAME') ?: 'fortunexdigital');
 define('DB_USERNAME', getenv('DB_USERNAME') ?: 'root');
 define('DB_PORT', getenv('DB_PORT') ?: '3306');
-define('DB_PASSWORD', getenv('DB_PASSWORD') ?: '');
+define('DB_PASSWORD', getenv('DB_PASSWORD') ?: 'wiztech');
 
 // Paths
 define('ROOT_DIR', __DIR__);
