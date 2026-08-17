@@ -43,6 +43,21 @@ if (!function_exists('get_categories')) {
     }
 }
 
+if (!function_exists('category_image')) {
+    function category_image($cat) {
+        $img = $cat['image'] ?? '';
+        if ($img) {
+            // Accept a full URL or a root-relative path like /assets/img/...
+            if (strpos($img, 'http') !== 0 && strpos($img, '/') === 0) {
+                $img = SITE_URL . $img;
+            }
+            return $img;
+        }
+        // Fallback: file named by slug, e.g. categories_side-hustles.jpg
+        return ASSETS . '/img/categories_' . $cat['slug'] . '.jpg';
+    }
+}
+
 if (!function_exists('get_post')) {
     function get_post($slug) {
         $pdo = DB::connect();

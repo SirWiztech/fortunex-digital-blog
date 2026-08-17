@@ -120,8 +120,10 @@ $categories = [
     ['copywriting', 'Copywriting', 'Write words that sell — for emails, landing pages, and product offers.']
 ];
 $pdo->exec("DELETE FROM categories");
-$catStmt = $pdo->prepare("INSERT INTO categories (slug, name, description) VALUES (?, ?, ?)");
-foreach ($categories as $c) { $catStmt->execute($c); }
+$catStmt = $pdo->prepare("INSERT INTO categories (slug, name, description, image) VALUES (?, ?, ?, ?)");
+foreach ($categories as $c) {
+    $catStmt->execute([$c[0], $c[1], $c[2], ASSETS . '/img/categories_' . $c[0] . '.jpg']);
+}
 
 // ---------- Static pages ----------
 $pages = [

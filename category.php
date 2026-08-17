@@ -48,6 +48,9 @@ require_once __DIR__ . '/includes/header.php';
 </div>
 <section class="section">
     <div class="container">
+        <div class="cat-hero">
+            <img src="<?= e(category_image($cat)) ?>" alt="<?= e($cat['name']) ?> category" width="800" height="450">
+        </div>
         <h1 class="section-title"><?= e($cat['name']) ?></h1>
         <p class="section-sub"><?= e($cat['description'] ?: 'Browse all ' . $cat['name'] . ' articles.') ?></p>
         <div class="post-grid">

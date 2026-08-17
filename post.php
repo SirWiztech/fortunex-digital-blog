@@ -118,7 +118,7 @@ require_once __DIR__ . '/includes/header.php';
         <aside class="sidebar">
             <div class="widget widget-optin">
                 <h4>Free Affiliate Course</h4>
-                <p style="color:#fff;font-size:14px">Get our step-by-step video training.</p>
+                <p style="color:var(--muted);font-size:14px">Get our step-by-step video training.</p>
                 <form action="<?= SITE_URL ?>/p/contact" method="get">
                     <input type="email" name="email" placeholder="Your email" required aria-label="Email">
                     <button class="btn-cta" type="submit">Get Access</button>
