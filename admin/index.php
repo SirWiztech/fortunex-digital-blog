@@ -85,31 +85,55 @@ $posts = $pdo->query("SELECT p.id, p.title, p.status, p.published_at, c.name AS 
 $traffic_action = $_GET['traffic_action'] ?? 'overview';
 $traffic_period = $_GET['period'] ?? 'all';
 
+// Older databases may predate the traffic-stats feature and lack the
+// `visits` table. Without it, every query below throws and the whole
+// dashboard returns a 500. Create the table if missing so live installs
+// that haven't re-run install.php still work.
+try {
+    $pdo->exec("CREATE TABLE IF NOT EXISTS visits (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        ip VARCHAR(45),
+        user_agent TEXT,
+        referer TEXT,
+        page_url TEXT,
+        visited_at DATETIME
+    )");
+} catch (PDOException $e) {
+    // Degrade gracefully below instead of crashing the page.
+}
+
 // Reset visit statistics (POST only, so crawlers/prefetch can't wipe data)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $traffic_action === 'reset') {
-    $pdo->exec("DELETE FROM visits");
-    $message = 'All visit statistics have been reset to zero.';
+    try {
+        $pdo->exec("DELETE FROM visits");
+        $message = 'All visit statistics have been reset to zero.';
+    } catch (PDOException $e) {
+        $message = 'Could not reset visit statistics: ' . $e->getMessage();
+    }
     $traffic_action = 'overview';
 }
-$period = '';
-if ($traffic_period === 'day') { $period = "AND visited_at >= CURDATE()"; }
-if ($traffic_period === 'week') { $period = "AND visited_at >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)"; }
-if ($traffic_period === 'month') { $period = "AND visited_at >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)"; }
 
-$total_visits = $pdo->query("SELECT COUNT(*) as cnt FROM visits")->fetch()['cnt'];
-$unique_visitors = $pdo->query("SELECT COUNT(DISTINCT ip) as cnt FROM visits")->fetch()['cnt'];
-$today_visits = $pdo->query("SELECT COUNT(*) as cnt FROM visits WHERE visited_at >= CURDATE()")->fetch()['cnt'];
-$this_week = $pdo->query("SELECT COUNT(*) as cnt FROM visits WHERE visited_at >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)")->fetch()['cnt'];
-$this_month = $pdo->query("SELECT COUNT(*) as cnt FROM visits WHERE visited_at >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)")->fetch()['cnt'];
+$stats_error = '';
+$total_visits = $unique_visitors = $today_visits = $this_week = $this_month = 0;
+$top_pages = $referrers = $recent = [];
+try {
+    $total_visits = $pdo->query("SELECT COUNT(*) as cnt FROM visits")->fetch()['cnt'];
+    $unique_visitors = $pdo->query("SELECT COUNT(DISTINCT ip) as cnt FROM visits")->fetch()['cnt'];
+    $today_visits = $pdo->query("SELECT COUNT(*) as cnt FROM visits WHERE visited_at >= CURDATE()")->fetch()['cnt'];
+    $this_week = $pdo->query("SELECT COUNT(*) as cnt FROM visits WHERE visited_at >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)")->fetch()['cnt'];
+    $this_month = $pdo->query("SELECT COUNT(*) as cnt FROM visits WHERE visited_at >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)")->fetch()['cnt'];
 
-// Top pages
-$top_pages = $pdo->query("SELECT page_url, COUNT(*) as visits FROM visits GROUP BY page_url ORDER BY visits DESC LIMIT 10")->fetchAll();
+    // Top pages
+    $top_pages = $pdo->query("SELECT page_url, COUNT(*) as visits FROM visits GROUP BY page_url ORDER BY visits DESC LIMIT 10")->fetchAll();
 
-// Referrers
-$referrers = $pdo->query("SELECT referer, COUNT(*) as cnt FROM visits WHERE referer != '' AND referer IS NOT NULL GROUP BY referer ORDER BY cnt DESC LIMIT 10")->fetchAll();
+    // Referrers
+    $referrers = $pdo->query("SELECT referer, COUNT(*) as cnt FROM visits WHERE referer != '' AND referer IS NOT NULL GROUP BY referer ORDER BY cnt DESC LIMIT 10")->fetchAll();
 
-// Recent visits
-$recent = $pdo->query("SELECT ip, page_url, visited_at FROM visits ORDER BY visited_at DESC LIMIT 20")->fetchAll();
+    // Recent visits
+    $recent = $pdo->query("SELECT ip, page_url, visited_at FROM visits ORDER BY visited_at DESC LIMIT 20")->fetchAll();
+} catch (PDOException $e) {
+    $stats_error = 'Traffic statistics are unavailable: ' . $e->getMessage();
+}
 ?>
 <!doctype html>
 <html lang="en">
@@ -143,6 +167,7 @@ $recent = $pdo->query("SELECT ip, page_url, visited_at FROM visits ORDER BY visi
 <div class="admin-wrap">
 
   <?php if ($message): ?><p class="pill" style="background:#e8f5e9;color:#1b5e20"><?= e($message) ?></p><?php endif; ?>
+  <?php if ($stats_error): ?><p class="pill" style="background:#fff3e0;color:#e65100"><?= e($stats_error) ?></p><?php endif; ?>
 
   <!-- Traffic overview cards -->
   <div class="traffic-filter">
