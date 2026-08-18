@@ -62,6 +62,8 @@ function render_ld($block) {
 <?= render_ld($b) ?>
 <?php endforeach; ?>
     </script>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6709647601744424"
+     crossorigin="anonymous"></script>
 </head>
 <body class="<?= e($bodyClass ?? '') ?>">
 <a class="skip-link" href="#content">Skip to content</a>
